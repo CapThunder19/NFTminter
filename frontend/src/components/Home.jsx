@@ -70,8 +70,8 @@ export default function Home() {
     className="md:w-1/2 space-y-6"
   >
     <h1 className="text-5xl md:text-6xl font-extrabold leading-tight">
-      Discover, Find,{" "}
-      <span className="text-cyan-400">Sell Extraordinary</span> Monster NFTs
+      Discover, Mint,{" "}
+      <span className="text-cyan-400">Sell NFTs</span>
     </h1>
     <p className="text-gray-400 text-lg">
       A futuristic NFT marketplace — built for Web3 creators & collectors.
@@ -151,12 +151,10 @@ export default function Home() {
                 <div className="flex justify-between text-sm text-gray-400 mb-3">
                   <span>ID: {nft.id}</span>
                   <span>
-                    {nft.owner.slice(0, 6)}...{nft.owner.slice(-4)}
+                    Owner: {nft.owner.slice(0, 6)}...{nft.owner.slice(-4)}
                   </span>
                 </div>
-                <button className="w-full bg-cyan-600 py-2 rounded-lg font-semibold hover:bg-cyan-500 transition-colors duration-300">
-                  Place Bid
-                </button>
+                
               </div>
             </motion.div>
           ))}
@@ -165,7 +163,7 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="py-10 text-center text-gray-500 border-t border-gray-800">
-        © 2025 <span className="text-cyan-400 font-semibold">NFTory</span>.
+        © 2025 
         Built for Web3.
       </footer>
     </div>
