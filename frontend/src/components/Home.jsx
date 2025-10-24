@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import nftabi from "../abi/NFTminter.json";
 import NFTcard from "./NFTcard"; 
 
+
 const address = "0x62E8075F8602104c559525d0FFCA6a3511C9fc2e";
 
 export default function Home() {
