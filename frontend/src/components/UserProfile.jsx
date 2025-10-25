@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import axios from "axios";
 import nftabi from "../abi/NFTminter.json";
 
-const contractAddress = "0x55812cc05f2E61BB0Ff5F2DA58163ee4ac897D49";
+const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 const IPFS_GATEWAYS = [
   "https://ipfs.io/ipfs/",
   "https://dweb.link/ipfs/",

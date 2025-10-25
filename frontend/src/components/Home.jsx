@@ -40,7 +40,7 @@ export default function Home() {
 
       const imageUri = `ipfs://${imageRes.data.IpfsHash}`;
 
-      // Upload metadata
+      
       const metadata = {
         name,
         description,
@@ -65,7 +65,7 @@ export default function Home() {
     }
   };
 
-  // Mint NFT
+
   const mintNFT = async () => {
     if (!window.ethereum) return alert("Please install MetaMask!");
     if (!file || !name || !description) return alert("Fill all fields!");
@@ -94,7 +94,7 @@ export default function Home() {
     }
   };
 
-  // Fetch NFTs
+ 
   const fetchNFTs = async () => {
     if (!window.ethereum) return;
     try {
@@ -109,7 +109,7 @@ export default function Home() {
       for (let i = 0; i < totalNFTs; i++) {
         const [uri, owner] = await contract.getNFT(i);
 
-        // Fetch metadata
+     
         let metadata = {};
         if (uri && uri.startsWith("ipfs://")) {
           try {
