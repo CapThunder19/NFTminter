@@ -1,14 +1,16 @@
 const hre = require("hardhat");
 
 async function main() {
-  const NFTMinter = await hre.ethers.getContractFactory("NFTminter");
-  const nftMinter = await NFTMinter.deploy();
-  await nftMinter.waitForDeployment();
+  const NFTminter = await hre.ethers.getContractFactory("NFTminter");
+  const nftminter = await NFTminter.deploy();
 
-  console.log("NFTMinter deployed to:", await nftMinter.getAddress());
+  await nftminter.waitForDeployment();
+  console.log("NFTminter deployed to:", await nftminter.getAddress());
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

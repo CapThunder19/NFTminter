@@ -1,57 +1,139 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { motion } from "framer-motion";
+import axios from "axios";
 import nftabi from "../abi/NFTminter.json";
-import NFTcard from "./NFTcard"; 
+import NFTcard from "./NFTcard";
 
 
-const address = "0x62E8075F8602104c559525d0FFCA6a3511C9fc2e";
+
+const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+const PINATA_JWT_KEY = import.meta.env.VITE_PINATA_JWT_KEY;
+
 
 export default function Home() {
-  const [tokenURI, setTokenURI] = useState("");
+  const [file, setFile] = useState(null);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [nfts, setNfts] = useState([]);
   const [loadingMint, setLoadingMint] = useState(false);
   const [loadingFetch, setLoadingFetch] = useState(false);
-  const [selectedNFT, setSelectedNFT] = useState(null); 
+  const [selectedNFT, setSelectedNFT] = useState(null);
 
+  
+  const uploadToIPFS = async (file, name, description) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      
+      const imageRes = await axios.post(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${PINATA_JWT_KEY}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const imageUri = `ipfs://${imageRes.data.IpfsHash}`;
+
+      // Upload metadata
+      const metadata = {
+        name,
+        description,
+        image: imageUri,
+      };
+
+      const metadataRes = await axios.post(
+        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+        metadata,
+        {
+          headers: {
+            Authorization: `Bearer ${PINATA_JWT_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return `ipfs://${metadataRes.data.IpfsHash}`;
+    } catch (err) {
+      console.error("IPFS upload error:", err);
+      throw err;
+    }
+  };
+
+  // Mint NFT
   const mintNFT = async () => {
     if (!window.ethereum) return alert("Please install MetaMask!");
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const nftContract = new ethers.Contract(address, nftabi.abi, signer);
+    if (!file || !name || !description) return alert("Fill all fields!");
 
-    if (!tokenURI) return alert("Enter token URI!");
     try {
       setLoadingMint(true);
+      const tokenURI = await uploadToIPFS(file, name, description);
+      if (!tokenURI) return alert("IPFS upload failed");
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const nftContract = new ethers.Contract(contractAddress, nftabi.abi, signer);
+
       const tx = await nftContract.MintNNFT(tokenURI);
       await tx.wait();
+
       alert("NFT Minted ✅");
-      setTokenURI("");
+      setFile(null);
+      setName("");
+      setDescription("");
       fetchNFTs();
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoadingMint(false);
     }
   };
 
+  // Fetch NFTs
   const fetchNFTs = async () => {
     if (!window.ethereum) return;
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const nftContract = new ethers.Contract(address, nftabi.abi, signer);
-
     try {
       setLoadingFetch(true);
-      const totalNFTs = await nftContract.id();
-      const nftsArray = [];
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, nftabi.abi, signer);
+
+      const totalNFTs = Number(await contract.id());
+      const nftArray = [];
+
       for (let i = 0; i < totalNFTs; i++) {
-        const [uri, owner] = await nftContract.getNFT(i);
-        nftsArray.push({ id: i, uri, owner });
+        const [uri, owner] = await contract.getNFT(i);
+
+        // Fetch metadata
+        let metadata = {};
+        if (uri && uri.startsWith("ipfs://")) {
+          try {
+            const cid = uri.replace("ipfs://", "");
+            const res = await axios.get(`https://ipfs.io/ipfs/${cid}`);
+            metadata = res.data;
+          } catch (err) {
+            console.warn("Failed to fetch NFT metadata:", err.message);
+            metadata = { name: `NFT #${i}`, image: "/placeholder.png" };
+          }
+        }
+
+        nftArray.push({
+          id: i,
+          owner,
+          uri,
+          name: metadata.name || `NFT #${i}`,
+          image: metadata.image || "/placeholder.png",
+        });
       }
-      setNfts(nftsArray);
-    } catch (error) {
-      console.error(error);
+
+      setNfts(nftArray);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoadingFetch(false);
     }
@@ -90,11 +172,24 @@ export default function Home() {
           <h2 className="text-2xl font-semibold mb-6 text-center text-cyan-300">
             Mint Your NFT
           </h2>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="w-full mb-4 text-gray-100"
+          />
           <input
             type="text"
-            placeholder="Enter IPFS Token URI"
-            value={tokenURI}
-            onChange={(e) => setTokenURI(e.target.value)}
+            placeholder="NFT Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-3 rounded-lg bg-[#1a1a1a] text-gray-100 mb-4 focus:outline-none focus:ring-2 focus:ring-cyan-400 placeholder-gray-500"
+          />
+          <textarea
+            placeholder="NFT Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             className="w-full p-3 rounded-lg bg-[#1a1a1a] text-gray-100 mb-5 focus:outline-none focus:ring-2 focus:ring-cyan-400 placeholder-gray-500"
           />
           <button
@@ -133,7 +228,7 @@ export default function Home() {
           {nfts.map((nft, index) => (
             <motion.div
               key={nft.id}
-              onClick={() => setSelectedNFT(nft)} 
+              onClick={() => setSelectedNFT(nft)}
               initial={{ opacity: 0, scale: 0.8, y: 30 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.7, delay: index * 0.1 }}
@@ -142,11 +237,13 @@ export default function Home() {
             >
               <img
                 src={
-                  nft.uri.startsWith("ipfs://")
-                    ? nft.uri.replace("ipfs://", "https://ipfs.io/ipfs/")
-                    : nft.uri
+                  nft.image
+                    ? nft.image.startsWith("ipfs://")
+                      ? `https://ipfs.io/ipfs/${nft.image.replace("ipfs://", "")}`
+                      : nft.image
+                    : "/placeholder.png"
                 }
-                alt={`NFT ${nft.id}`}
+                alt={nft.name || `NFT ${nft.id}`}
                 className="w-full h-64 object-cover"
               />
               <div className="p-4">
@@ -156,6 +253,7 @@ export default function Home() {
                     Owner: {nft.owner.slice(0, 6)}...{nft.owner.slice(-4)}
                   </span>
                 </div>
+                <h3 className="text-cyan-400 font-semibold">{nft.name}</h3>
               </div>
             </motion.div>
           ))}

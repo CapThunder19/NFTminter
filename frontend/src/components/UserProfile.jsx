@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ethers } from "ethers";
+import axios from "axios";
 import nftabi from "../abi/NFTminter.json";
 
-const contractAddress = "0x62E8075F8602104c559525d0FFCA6a3511C9fc2e";
+const contractAddress = "0x55812cc05f2E61BB0Ff5F2DA58163ee4ac897D49";
+const IPFS_GATEWAYS = [
+  "https://ipfs.io/ipfs/",
+  "https://dweb.link/ipfs/",
+  "https://gateway.pinata.cloud/ipfs/"
+];
 
 export const UserProfile = ({ address }) => {
   const [nfts, setNfts] = useState([]);
@@ -12,25 +18,70 @@ export const UserProfile = ({ address }) => {
 
   const fetchUserNFTs = async () => {
     if (!window.ethereum) return;
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const nftContract = new ethers.Contract(contractAddress, nftabi.abi, signer);
 
-    const totalNFTs = await nftContract.id();
-    const userNFTs = [];
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const nftContract = new ethers.Contract(contractAddress, nftabi.abi, signer);
 
-    for (let i = 0; i < totalNFTs; i++) {
-      const [uri, owner] = await nftContract.getNFT(i);
-      if (owner.toLowerCase() === address.toLowerCase()) {
-        userNFTs.push({
-          id: i,
-          uri: uri.startsWith("ipfs://")
-            ? uri.replace("ipfs://", "https://ipfs.io/ipfs/")
-            : uri,
-        });
+      const totalNFTs = Number(await nftContract.id());
+      const userNFTs = [];
+
+      for (let i = 0; i < totalNFTs; i++) {
+        try {
+          const [uri, owner] = await nftContract.getNFT(i);
+          if (owner.toLowerCase() === address.toLowerCase()) {
+            let imageUri = "/placeholder.png"; // default
+
+            if (uri) {
+              let metadata = null;
+
+              if (uri.startsWith("ipfs://")) {
+                const cid = uri.replace("ipfs://", "");
+                for (const gateway of IPFS_GATEWAYS) {
+                  try {
+                    const res = await axios.get(`${gateway}${cid}`, { timeout: 10000 });
+                    metadata = res.data;
+                    break;
+                  } catch (err) {
+                    console.warn(`Failed to fetch metadata from ${gateway}${cid}`);
+                  }
+                }
+              } else {
+              
+                try {
+                  const res = await axios.get(uri, { timeout: 10000 });
+                  metadata = res.data;
+                } catch (err) {
+                  console.warn(`Failed to fetch metadata from ${uri}`);
+                }
+              }
+
+              if (metadata?.image) {
+              
+                if (metadata.image.startsWith("ipfs://")) {
+                  const cid = metadata.image.replace("ipfs://", "");
+                  imageUri = `${IPFS_GATEWAYS[0]}${cid}`;
+                } else {
+                  imageUri = metadata.image;
+                }
+              }
+            }
+
+            userNFTs.push({
+              id: i,
+              uri: imageUri
+            });
+          }
+        } catch (err) {
+          console.error(`Error fetching NFT ${i}:`, err.message);
+        }
       }
+
+      setNfts(userNFTs);
+    } catch (err) {
+      console.error("Error fetching user NFTs:", err.message);
     }
-    setNfts(userNFTs);
   };
 
   useEffect(() => {
@@ -46,7 +97,6 @@ export const UserProfile = ({ address }) => {
 
   return (
     <div className="relative">
-      {/* Avatar */}
       <img
         src={
           profilePic ||
@@ -57,7 +107,6 @@ export const UserProfile = ({ address }) => {
         className="w-10 h-10 rounded-full border-2 border-cyan-400 cursor-pointer hover:scale-110 transition-transform duration-300"
       />
 
-      {/* Popup */}
       <AnimatePresence>
         {showPopup && (
           <motion.div
@@ -87,7 +136,7 @@ export const UserProfile = ({ address }) => {
                 nfts.map((nft) => (
                   <img
                     key={nft.id}
-                    src={nft.uri}
+                    src={nft.uri || "/placeholder.png"}
                     alt={`NFT ${nft.id}`}
                     onClick={() => handleSelectProfile(nft.uri)}
                     className={`w-full h-24 object-cover rounded-lg cursor-pointer border-2 ${
