@@ -66,6 +66,14 @@ contract NFTminter is ERC721URIStorage, Ownable{
         return mintid;
     }
 
+    function getTotalNFTs() public view returns (uint256) {
+    return id;
+    }
+
+    function getTotalTickets() public view returns (uint256) {
+    return ticketid;
+    }
+
     
 
 

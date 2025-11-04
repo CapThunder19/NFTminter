@@ -137,7 +137,12 @@ export default function TicketCard({ nft, onClose }) {
               onError={(e) => { setImageError(true); e.target.src = "/placeholder.png"; e.target.onerror = null; }}
             />
             <h2 className="text-xl font-semibold text-cyan-400 mb-2">{metadata.name}</h2>
-            <p className="text-gray-300 mb-3">{metadata.description}</p>
+            <p
+  className="text-gray-300 mb-3 max-h-32 overflow-y-auto break-words whitespace-pre-wrap pr-2 scrollbar-thin scrollbar-thumb-cyan-700 scrollbar-track-transparent"
+>
+  {metadata.description}
+</p>
+
 
             <div className="text-xs text-gray-400 space-y-1 mb-4">
               <p><span className="text-cyan-400">Token ID:</span> {nft.id}</p>

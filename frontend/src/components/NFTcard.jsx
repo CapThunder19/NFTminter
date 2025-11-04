@@ -108,11 +108,11 @@ export default function NFTcard({ nft, onClose }) {
       const contract = new ethers.Contract(contractAddress, nftabi.abi, signer);
       const tx = await contract.transferNFT(toAddress, nft.id);
       await tx.wait();
-      alert("✅ NFT transferred successfully!");
+      alert("NFT transferred successfully!");
       onClose();
     } catch (err) {
       console.error(err);
-      alert(`❌ Transfer failed: ${err.reason || err.message}`);
+      alert(`Transfer failed: ${err.reason || err.message}`);
     } finally {
       setIsTransferring(false);
     }
@@ -133,7 +133,7 @@ export default function NFTcard({ nft, onClose }) {
       <div className="bg-[#0a0a0a] border border-cyan-400 rounded-2xl shadow-[0_0_25px_rgba(6,182,212,0.3)] w-[380px] p-6 text-white relative">
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-cyan-400 hover:text-cyan-300 text-xl"
+          className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl"
         >
           ✕
         </button>

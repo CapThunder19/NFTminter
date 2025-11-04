@@ -248,7 +248,7 @@ export default function TicketPage() {
 
       <section className="px-10 md:px-24 py-24 border-t border-gray-800">
         <h2 className="text-4xl font-bold mb-12 text-center text-cyan-400">
-          🎟️ Ticket Gallery
+          Ticket Gallery
         </h2>
 
         {loadingFetch && <p className="text-center text-gray-400">Loading tickets...</p>}
@@ -285,7 +285,7 @@ export default function TicketPage() {
         </div>
       </section>
 
-      {/* ✅ TicketCard modal */}
+      {/* TicketCard modal */}
       {selectedNFT && <TicketCard nft={selectedNFT} onClose={() => setSelectedNFT(null)} />}
 
       <footer className="py-10 text-center text-gray-500 border-t border-gray-800">

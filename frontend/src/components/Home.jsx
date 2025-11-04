@@ -155,7 +155,7 @@ export default function Home() {
           className="md:w-1/2 space-y-6"
         >
           <h1 className="text-5xl md:text-6xl font-extrabold leading-tight">
-            Discover, Mint, <span className="text-cyan-400">Sell NFTs</span>
+            Discover, <span className="text-cyan-400">Mint <br />NFTs</span>
           </h1>
           <p className="text-gray-400 text-lg">
             A futuristic NFT marketplace — built for Web3 creators & collectors.

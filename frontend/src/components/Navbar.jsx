@@ -33,6 +33,14 @@ export default function Navbar() {
           >
             Tickets
           </Link>
+           <Link
+            to="/mynfts"
+            className={`text-gray-300 hover:text-cyan-400 transition ${
+              location.pathname === "/mynfts" ? "text-cyan-400 font-semibold" : ""
+            }`}
+          >
+            MyNFTs
+          </Link>
         </div>
       </div>
 

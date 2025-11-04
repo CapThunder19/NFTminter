@@ -6,6 +6,7 @@ import { WagmiProvider } from 'wagmi'
 import { config } from './config.js'
 import Home from './components/Home.jsx'
 import TicketPage from './components/TicketPage.jsx'
+import MyNFTs from './components/MyNFTs.jsx'
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/tickets" element={<TicketPage />} />
+                <Route path="/mynfts" element={<MyNFTs />} />
               </Routes>
             </main>
           </div>
